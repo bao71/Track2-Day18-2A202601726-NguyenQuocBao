@@ -91,9 +91,18 @@ def reset_catalog(name: str = "lab") -> None:
 
     Scoped to `name` on purpose — see `_catalog_dir`.
     """
+    import gc
     import shutil
+    import time
 
-    shutil.rmtree(_catalog_dir(name), ignore_errors=True)
+    target = _catalog_dir(name)
+    gc.collect()
+    for attempt in range(5):
+        shutil.rmtree(target, ignore_errors=True)
+        if not target.exists():
+            return
+        gc.collect()
+        time.sleep(0.1 * (attempt + 1))
 
 
 def namespace(cat, ns: str = "lake"):
